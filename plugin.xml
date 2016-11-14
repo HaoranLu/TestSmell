@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+
+   <extension
+         point="org.eclipse.ui.commands">
+      <category
+            name="Test Smell Category"
+            id="TestSmellPlugin.commands.category">
+      </category>
+      <command
+            name="Command1"
+            categoryId="TestSmellPlugin.commands.category"
+            id="TestSmellPlugin.commands.Command1">
+      </command>
+      <command
+            name="Command2"
+            categoryId="TestSmellPlugin.commands.category"
+            id="TestSmellPlugin.commands.Command2">
+      </command>
+   </extension>
+   <extension
+         point="org.eclipse.ui.handlers">
+      <handler
+            commandId="TestSmellPlugin.commands.Command1"
+            class="testsmellplugin.handlers.Handler1">
+      </handler>
+      <handler
+            commandId="TestSmellPlugin.commands.Command2"
+            class="testsmellplugin.handlers.Handler2">
+      </handler>
+   </extension>
+   <extension
+         point="org.eclipse.ui.bindings">
+      <key
+            commandId="TestSmellPlugin.commands.Command1"
+            contextId="org.eclipse.ui.contexts.window"
+            sequence="M1+6"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration">
+      </key>
+      <key
+            commandId="TestSmellPlugin.commands.Command2"
+            contextId="org.eclipse.ui.contexts.window"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="M1+7">
+      </key>
+   </extension>
+   <extension
+         point="org.eclipse.ui.menus">
+      <menuContribution
+            locationURI="menu:org.eclipse.ui.main.menu?after=additions">
+         <menu
+               label="Test Smell"
+               mnemonic="T"
+               id="TestSmellPlugin.menus.sampleMenu">
+            <command
+                  commandId="TestSmellPlugin.commands.Command1"
+                  id="TestSmellPlugin.menus.Command1"
+                  label="Detect Test Smell"
+                  mnemonic="S"
+                  tooltip="test smell detect">
+            </command>
+            <command
+                  commandId="TestSmellPlugin.commands.Command2"
+                  id="TestSmellPlugin.menus.Command2"
+                  label="related code smell"
+                  mnemonic="S"
+                  tooltip="relates code smell detect">
+            </command>
+         </menu>
+      </menuContribution>
+      <menuContribution
+            locationURI="toolbar:org.eclipse.ui.main.toolbar?after=additions">
+         <toolbar
+               id="TestSmellPlugin.toolbars.sampleToolbar">
+            <command
+                  commandId="TestSmellPlugin.commands.Command1"
+                  icon="icons/repair.png"
+                  tooltip="Test smell command1"
+                  id="TestSmellPlugin.toolbars.Command1">
+            </command>
+            <command
+                  commandId="TestSmellPlugin.commands.Command2"
+                  icon="icons/repair.png"
+                  tooltip="Test smell command2"
+                  id="TestSmellPlugin.toolbars.Command2">
+            </command>
+         </toolbar>
+      </menuContribution>
+   </extension>
+   <extension
+         point="org.eclipse.ui.preferencePages">
+      <page
+            name="Test Smell settings"
+            class="testsmellplugin.preferences.SamplePreferencePage"
+            id="testsmellplugin.preferences.SamplePreferencePage">
+      </page>
+   </extension>
+   <extension
+         point="org.eclipse.core.runtime.preferences">
+      <initializer
+            class="testsmellplugin.preferences.PreferenceInitializer">
+      </initializer>
+   </extension>
+   <extension
+         point="org.eclipse.ui.views">
+      <category
+            name="Test Smell"
+            id="TestSmellPlugin">
+      </category>
+      <view
+            name="Test Smell Result"
+            icon="icons/sample.gif"
+            category="TestSmellPlugin"
+            class="testsmellplugin.views.SampleView"
+            id="testsmellplugin.views.SampleView">
+      </view>
+   </extension>
+   <extension
+         point="org.eclipse.ui.perspectiveExtensions">
+      <perspectiveExtension
+            targetID="org.eclipse.jdt.ui.JavaPerspective">
+         <view
+               ratio="0.5"
+               relative="org.eclipse.ui.views.ProblemView"
+               relationship="right"
+               id="testsmellplugin.views.SampleView">
+         </view>
+      </perspectiveExtension>
+   </extension>
+   <extension
+         point="org.eclipse.help.contexts">
+      <contexts
+            file="contexts.xml">
+      </contexts>
+   </extension>
+
+</plugin>
