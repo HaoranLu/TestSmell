@@ -334,25 +334,7 @@ public class SampleView extends ViewPart {
 		});*/
 
 	}
-	/**
-	 * This is a callback that will allow us
-	 * to create the viewer and initialize it.
-	 */
-	/*public void createPartControl(Composite parent) {
-		viewer = new TableViewer(parent, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL);
-		
-		viewer.setContentProvider(ArrayContentProvider.getInstance());
-		viewer.setInput(new String[] { "One", "Two", "Three" });
-		viewer.setLabelProvider(new ViewLabelProvider());
 
-		// Create the help context id for the viewer's control
-		PlatformUI.getWorkbench().getHelpSystem().setHelp(viewer.getControl(), "TestSmellPlugin.viewer");
-		getSite().setSelectionProvider(viewer);
-		makeActions();
-		hookContextMenu();
-		hookDoubleClickAction();
-		contributeToActionBars();
-	}*/
 
 	private void hookContextMenu() {
 		MenuManager menuMgr = new MenuManager("#PopupMenu");
@@ -442,5 +424,11 @@ public class SampleView extends ViewPart {
 	public void dispose() {
 		super.dispose();
 		getSite().getWorkbenchWindow().getSelectionService().removeSelectionListener(selectionListener);
+	}
+
+	@Override
+	public Object getAdapter(Class arg0) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

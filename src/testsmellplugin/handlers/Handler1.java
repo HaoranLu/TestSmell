@@ -1,30 +1,49 @@
 package testsmellplugin.handlers;
 
+import java.io.File;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IWorkspaceRoot;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.IAdaptable;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.ui.ISelectionListener;
-import org.eclipse.ui.ISelectionService;
+import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbench;
+import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.handlers.HandlerUtil;
 import org.eclipse.ui.progress.IProgressService;
 
+import it.unisa.scam14.beans.TestClassBean;
+import testsmell.DetectionExample;
+import testsmell.PluginCandidate;
+import testsmell.PluginCandidateProvider;
 import testsmellplugin.Activator;
 import testsmellplugin.preferences.PreferenceConstants;
 import testsmellplugin.views.SampleView;
+import testsmellplugin.views.TestSmellResult;
 
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
@@ -44,7 +63,11 @@ public class Handler1 extends AbstractHandler {
 	private IPackageFragment selectedPackageFragment;
 	private ICompilationUnit selectedCompilationUnit;
 	private IType selectedType;
+	private IMethod selectedMethod;
+	private IField selectedField;
+	private IPath selectedPath;
 	private boolean projectSelected = false;
+	protected ArrayList<PluginCandidate> candidates;
 	@Override
 	public Object execute(ExecutionEvent event) throws ExecutionException {
 		IPreferenceStore store = Activator.getDefault().getPreferenceStore();
@@ -60,12 +83,26 @@ public class Handler1 extends AbstractHandler {
 		if (projectSelected) {
 			//excute detectTestSmell and show test smell result view
 			//testsmell result use singleton.
-			activeProject = selectedProject;
-			detectTestSmell(activeProject);
+			this.activeProject = this.selectedProject;
+			IPath activePath = this.selectedPath;
+			
+			//IPath root = ResourcesPlugin.getWorkspace().getRoot().getLocation();
+			IPath root = activeProject.getResource().getLocation().removeLastSegments(1).addTrailingSeparator();
+			IPath selectedProjectPath = root.append(activeProject.getPath());
+			IPath activefullPath = root.append(activePath);
+			System.out.println(selectedProjectPath);
+			System.out.println(activefullPath);
+			File projectfile = selectedProjectPath.toFile();
+			File testClassFolder = activefullPath.toFile();
+			detectTestSmell(projectfile,testClassFolder);
+			IWorkbenchPage page= HandlerUtil.getActiveWorkbenchWindow(event).getActivePage();
+			IViewPart viewPart = page.findView(TestSmellResult.ID);
+			if (viewPart != null) {
+				page.hideView(viewPart);
+			}
 			try {
-				HandlerUtil.getActiveWorkbenchWindow(event).getActivePage().showView(SampleView.ID);
+				HandlerUtil.getActiveWorkbenchWindow(event).getActivePage().showView(TestSmellResult.ID);
 			} catch (PartInitException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}else {
@@ -82,11 +119,7 @@ public class Handler1 extends AbstractHandler {
 		}
 		return null;
 	}
-	private void detectTestSmell(Object testSmellTarget){
-		if (testSmellTarget instanceof IJavaProject) {
-			System.out.println("run test smell on " + testSmellTarget.toString());
-		}
-		
+	private void detectTestSmell(File ProjectFile, File TestClassFile ){
 		IWorkbench workbench = PlatformUI.getWorkbench();
 		IProgressService ps = workbench.getProgressService();
 		try {
@@ -95,13 +128,25 @@ public class Handler1 extends AbstractHandler {
 				@Override
 				public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 					try {
-						int timer = 10;
-						if (monitor != null) {
-							monitor.beginTask("Detecting Test Smell", timer);
+						DetectionExample detectionExample = new DetectionExample(ProjectFile, TestClassFile);
+						HashMap<TestClassBean, Object> testSmellResult = new HashMap<>();
+						int timer = 2;	
+							detectionExample.prepareForDetection(monitor);
+							monitor.worked(1);
+							detectionExample.getDetectionResult(monitor);
+							testSmellResult .putAll(detectionExample.getTestSmellResult());
+							System.out.println(testSmellResult.toString());
+						candidates = new ArrayList<PluginCandidate>();
+						int idcounter = 0;
+						for (TestClassBean key : testSmellResult.keySet()) {
+							candidates.add(new PluginCandidate(idcounter, "smelltype", "testSmellSourceEntity", "testSmellTargetClass", key, (HashMap<String, Object>)testSmellResult.get(key)));
+							idcounter ++;
 						}
+						PluginCandidateProvider.INSTANCE.setPluginCandidates(candidates);
 						for (int i = 0; i < timer; i++) {
 							if(monitor != null && monitor.isCanceled())
 				    			throw new OperationCanceledException();
+							
 							TimeUnit.SECONDS.sleep(1);//fake the detecting process
 							if(monitor != null)
 								monitor.worked(1);
@@ -116,61 +161,113 @@ public class Handler1 extends AbstractHandler {
 				}
 			});
 		} catch (InvocationTargetException | InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
 	}
 	private ISelectionListener selectionListener = new ISelectionListener() {
 		public void selectionChanged(IWorkbenchPart sourcepart, ISelection selection) {
+			
 			if (selection instanceof IStructuredSelection) {
 				IStructuredSelection structuredSelection = (IStructuredSelection)selection;
 				Object element = structuredSelection.getFirstElement();
+				/*if (element instanceof IAdaptable) {
+					IProject project = (IProject)((IAdaptable)element).getAdapter(IProject.class);
+		            IPath path = project.getFullPath();
+		            System.out.println(path);
+
+				}*/
 				IJavaProject javaProject = null;
 				if(element instanceof IJavaProject) {
 					javaProject = (IJavaProject)element;
+					selectedPath = javaProject.getPath();
 					selectedPackageFragmentRoot = null;
 					selectedPackageFragment = null;
 					selectedCompilationUnit = null;
 					selectedType = null;
+					selectedMethod = null;
+					selectedField = null;
 				}
 				else if(element instanceof IPackageFragmentRoot) {
 					IPackageFragmentRoot packageFragmentRoot = (IPackageFragmentRoot)element;
 					javaProject = packageFragmentRoot.getJavaProject();
+					selectedPath = javaProject.getPath().addTrailingSeparator();
 					selectedPackageFragmentRoot = packageFragmentRoot;
 					selectedPackageFragment = null;
 					selectedCompilationUnit = null;
 					selectedType = null;
+					selectedMethod = null;
+					selectedField = null;
 				}
 				else if(element instanceof IPackageFragment) {
 					IPackageFragment packageFragment = (IPackageFragment)element;
 					javaProject = packageFragment.getJavaProject();
+					selectedPath = packageFragment.getPath().addTrailingSeparator();
 					selectedPackageFragment = packageFragment;
 					selectedPackageFragmentRoot = null;
 					selectedCompilationUnit = null;
 					selectedType = null;
+					selectedMethod = null;
+					selectedField = null;
 				}
 				else if(element instanceof ICompilationUnit) {
 					ICompilationUnit compilationUnit = (ICompilationUnit)element;
 					javaProject = compilationUnit.getJavaProject();
+					IPath path = compilationUnit.getPath().removeLastSegments(1).addTrailingSeparator();
+					selectedPath = path;
 					selectedCompilationUnit = compilationUnit;
 					selectedPackageFragmentRoot = null;
 					selectedPackageFragment = null;
 					selectedType = null;
+					selectedMethod = null;
+					selectedField = null;
 				}
 				else if(element instanceof IType) {
 					IType type = (IType)element;
 					javaProject = type.getJavaProject();
+					IPath path = type.getPackageFragment().getPath().addTrailingSeparator();
+					selectedPath = path;
 					selectedType = type;
 					selectedPackageFragmentRoot = null;
 					selectedPackageFragment = null;
 					selectedCompilationUnit = null;
+					selectedMethod = null;
+					selectedField = null;
+				}
+				else if (element instanceof IMethod) {
+					IMethod method = (IMethod)element;
+					javaProject = method.getJavaProject();
+					IPath path = null;
+					try {
+						path = method.getCompilationUnit().getPath().removeLastSegments(1).addTrailingSeparator();
+					} catch (Exception e) {
+						// TODO: handle exception
+						path = method.getPath().addTrailingSeparator();
+					}
+					selectedPath = path;
+					selectedMethod = method;
+					selectedPackageFragmentRoot = null;
+					selectedPackageFragment = null;
+					selectedCompilationUnit = null;
+					selectedMethod = method;
+					selectedField = null;
+					
+				}
+				else if (element instanceof IField) {
+					IField field = (IField)element;
+					javaProject = field.getJavaProject();
+					IPath path = field.getCompilationUnit().getPath().removeLastSegments(1).addTrailingSeparator();
+					selectedPath = path;
+					selectedField = field;
+					selectedType = null;
+					selectedPackageFragmentRoot = null;
+					selectedPackageFragment = null;
+					selectedCompilationUnit = null;
+					selectedMethod = null;
+					selectedField = field;
 				}
 				if(javaProject != null && !javaProject.equals(selectedProject)) {
 					selectedProject = javaProject;
-					/*if(candidateRefactoringTable != null)
-						tableViewer.remove(candidateRefactoringTable);*/
-					//identifyBadSmellsAction.setEnabled(true);
 					projectSelected = true;
 				}
 			}

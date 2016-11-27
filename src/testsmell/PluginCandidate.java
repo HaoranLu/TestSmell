@@ -1,11 +1,10 @@
 package testsmell;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
+import java.util.HashMap;
 import java.util.List;
-import org.eclipse.core.resources.IFile;
-import org.eclipse.jdt.core.dom.TypeDeclaration;
-import org.eclipse.jface.text.Position;
+import it.unisa.scam14.beans.ClassBean;
+import it.unisa.scam14.beans.TestClassBean;
 
 public class PluginCandidate {
 	
@@ -13,28 +12,110 @@ public class PluginCandidate {
 	public String testSmellType;
 	public String testSmellSourceEntity;
 	public String testSmellTargetClass;
+	public TestClassBean testClass;
+	public HashMap<String, Object> testSmell;
 	public PluginCandidate(){
 		this.testSmellType = "NotKnown";
 		this.testSmellSourceEntity = "NotKnown";
 		this.testSmellTargetClass = "NotKnown";
+		this.testClass = new TestClassBean();
+		this.testSmell = new HashMap<>();
 				
 	}
-	/*public  double getEntityPlacement();
-	public  String getSourceEntity();
-	public  String getSource();
-	public  String getTarget();
-	public  Set<String> getEntitySet();
-	public  TypeDeclaration getSourceClassTypeDeclaration();
-	public  TypeDeclaration getTargetClassTypeDeclaration();
-	public  IFile getSourceIFile();
-	public  IFile getTargetIFile();
-	public  List<Position> getPositions();*/
+	
 	public PluginCandidate(String testSmellType, String testSmellSourceEntity, String testSmellTargetClass) {
 		super();
 		this.testSmellType = testSmellType;
 		this.testSmellSourceEntity = testSmellSourceEntity;
 		this.testSmellTargetClass = testSmellTargetClass;
 	}
+	public int getId() {
+		return id;
+	}
+
+	public void setId(int id) {
+		this.id = id;
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + id;
+		result = prime * result + ((testClass == null) ? 0 : testClass.getTestCase().getName().hashCode());
+		result = prime * result + ((testSmell == null) ? 0 : testSmell.hashCode());
+		result = prime * result + ((testSmellSourceEntity == null) ? 0 : testSmellSourceEntity.hashCode());
+		result = prime * result + ((testSmellTargetClass == null) ? 0 : testSmellTargetClass.hashCode());
+		result = prime * result + ((testSmellType == null) ? 0 : testSmellType.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		PluginCandidate other = (PluginCandidate) obj;
+		if (id != other.id)
+			return false;
+		if (testClass == null) {
+			if (other.testClass != null)
+				return false;
+		} else if (!testClass.equals(other.testClass))
+			return false;
+		if (testSmell == null) {
+			if (other.testSmell != null)
+				return false;
+		} else if (!testSmell.equals(other.testSmell))
+			return false;
+		if (testSmellSourceEntity == null) {
+			if (other.testSmellSourceEntity != null)
+				return false;
+		} else if (!testSmellSourceEntity.equals(other.testSmellSourceEntity))
+			return false;
+		if (testSmellTargetClass == null) {
+			if (other.testSmellTargetClass != null)
+				return false;
+		} else if (!testSmellTargetClass.equals(other.testSmellTargetClass))
+			return false;
+		if (testSmellType == null) {
+			if (other.testSmellType != null)
+				return false;
+		} else if (!testSmellType.equals(other.testSmellType))
+			return false;
+		return true;
+	}
+
+	public PluginCandidate(int id, String testSmellType, String testSmellSourceEntity, String testSmellTargetClass,
+			TestClassBean testClass, HashMap<String, Object> testSmell) {
+		super();
+		this.id = id;
+		this.testSmellType = testSmellType;
+		this.testSmellSourceEntity = testSmellSourceEntity;
+		this.testSmellTargetClass = testSmellTargetClass;
+		this.testClass = testClass;
+		this.testSmell = testSmell;
+	}
+
+	public TestClassBean getTestClass() {
+		return testClass;
+	}
+
+	public void setTestClass(TestClassBean testClass) {
+		this.testClass = testClass;
+	}
+
+	public HashMap<String, Object> getTestSmell() {
+		return testSmell;
+	}
+
+	public void setTestSmell(HashMap<String, Object> testSmell) {
+		this.testSmell = testSmell;
+	}
+
 	public String getTestSmellType() {
 		return this.testSmellType;
 	}
@@ -58,35 +139,4 @@ public class PluginCandidate {
 	public void setTestSmellTargetClass(String testSmellTargetClass) {
 		this.testSmellTargetClass = testSmellTargetClass;
 	}
-	
-	/*public String getAnnotationText() {
-		Map<String, ArrayList<String>> accessMap = new LinkedHashMap<String, ArrayList<String>>();
-		for(String entity : getEntitySet()) {
-			String[] tokens = entity.split("::");
-			String classOrigin = tokens[0];
-			String entityName = tokens[1];
-			if(accessMap.containsKey(classOrigin)) {
-				ArrayList<String> list = accessMap.get(classOrigin);
-				list.add(entityName);
-			}
-			else {
-				ArrayList<String> list = new ArrayList<String>();
-				list.add(entityName);
-				accessMap.put(classOrigin, list);
-			}
-		}
-		
-		StringBuilder sb = new StringBuilder();
-		Set<String> keySet = accessMap.keySet();
-		int i = 0;
-		for(String key : keySet) {
-			ArrayList<String> entities = accessMap.get(key);
-			sb.append(key + ": " + entities.size());
-			if(i < keySet.size()-1)
-				sb.append(" | ");
-			i++;
-		}
-		return sb.toString();
-	}*/
-
 }

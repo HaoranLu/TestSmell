@@ -115,6 +115,14 @@
             class="testsmellplugin.views.SampleView"
             id="testsmellplugin.views.SampleView">
       </view>
+      <view
+            allowMultiple="false"
+            category="TestSmellPlugin"
+            class="testsmellplugin.views.TestSmellResult"
+            icon="icons/sample.gif"
+            id="testsmellplugin.views.TestSmellResult"
+            name="Test Smell Result">
+      </view>
    </extension>
    <extension
          point="org.eclipse.ui.perspectiveExtensions">

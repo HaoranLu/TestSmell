@@ -3,6 +3,7 @@
 	<name>TestSmellPlugin</name>
 	<comment></comment>
 	<projects>
+		<project>BSAnalyzer</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
