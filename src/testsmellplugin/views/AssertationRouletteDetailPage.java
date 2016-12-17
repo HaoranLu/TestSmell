@@ -86,7 +86,7 @@ public class AssertationRouletteDetailPage extends TitleAreaDialog {
 					testClassBean.getTestCase().getName() + 
 					" has " + 
 					assertionList.size() + 
-					" assertions"
+					" assertions with no explanation"
 					, IMessageProvider.INFORMATION);
 		}
 
@@ -112,7 +112,7 @@ public class AssertationRouletteDetailPage extends TitleAreaDialog {
 		// Create column and show
 		TableColumn one = new TableColumn(table, SWT.LEAD);
 		one.setWidth(DIALOG_DEFAULT_BOUNDS);
-		one.setText("Asssertations");
+		one.setText("Asssertions");
 
 
 		//table.setHeaderVisible(true);
@@ -139,7 +139,7 @@ public class AssertationRouletteDetailPage extends TitleAreaDialog {
 	 *            the parent composite
 	 */
 	protected void createButtonsForButtonBar(Composite parent) {
-		IcreateButton(parent, "Refactingtips", false);
+		IcreateButton(parent, "Refacting Tips", false);
 		createButton(parent, IDialogConstants.OK_ID, IDialogConstants.OK_LABEL, true);
 		
 	}

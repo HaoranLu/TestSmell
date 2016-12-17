@@ -10,11 +10,14 @@ import java.util.concurrent.TimeUnit;
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
+import org.eclipse.core.internal.resources.Project;
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -26,6 +29,7 @@ import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.IType;
+import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbench;
@@ -37,12 +41,13 @@ import org.eclipse.ui.handlers.HandlerUtil;
 import org.eclipse.ui.progress.IProgressService;
 
 import it.unisa.scam14.beans.TestClassBean;
+import it.unisa.scam14.utility.TestSmellUtilities;
 import testsmell.DetectionExample;
 import testsmell.PluginCandidate;
 import testsmell.PluginCandidateProvider;
 import testsmellplugin.Activator;
 import testsmellplugin.preferences.PreferenceConstants;
-import testsmellplugin.views.SampleView;
+
 import testsmellplugin.views.TestSmellResult;
 
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -57,29 +62,29 @@ import org.eclipse.ui.PlatformUI;
  * @see org.eclipse.core.commands.AbstractHandler
  */
 public class Handler1 extends AbstractHandler {
-	private IJavaProject selectedProject;
-	private IJavaProject activeProject;
+	protected IJavaProject selectedProject;
+	protected IJavaProject activeProject;
 	private IPackageFragmentRoot selectedPackageFragmentRoot;
 	private IPackageFragment selectedPackageFragment;
 	private ICompilationUnit selectedCompilationUnit;
 	private IType selectedType;
 	private IMethod selectedMethod;
 	private IField selectedField;
-	private IPath selectedPath;
-	private boolean projectSelected = false;
+	protected IPath selectedPath;
+	protected boolean projectSelected = false;
 	protected ArrayList<PluginCandidate> candidates;
 	@Override
 	public Object execute(ExecutionEvent event) throws ExecutionException {
-		IPreferenceStore store = Activator.getDefault().getPreferenceStore();
-		String cho = testsmellplugin.preferences.PreferenceConstants.P_CHOICE;
-		String cho2 = store.getString(PreferenceConstants.P_CHOICE);
 		IWorkbenchWindow window = HandlerUtil.getActiveWorkbenchWindowChecked(event);
 		//ISelection selection = HandlerUtil.getCurrentSelection(event);
-		/*MessageDialog.openInformation(
-				window.getShell(),
-				"TestSmellPlugin",
-				"Handler1, called"+" pchoice is " + cho + " " + cho2);*/
-		window.getSelectionService().addSelectionListener(selectionListener);
+		IPreferenceStore store = Activator.getDefault().getPreferenceStore();
+//		boolean ena = store.getBoolean(PreferenceConstants.PREF_AUTO_DETECT_TESTSMELL);
+//		String choice = store.getString(PreferenceConstants.PREF_AUTO_DETECT_RANGE);
+//		MessageDialog.openInformation(
+//				window.getShell(),
+//				"preference",
+//				"range: "+choice + " enable: " + ena);
+//		window.getSelectionService().addSelectionListener(selectionListener);
 		if (projectSelected) {
 			//excute detectTestSmell and show test smell result view
 			//testsmell result use singleton.
@@ -90,26 +95,40 @@ public class Handler1 extends AbstractHandler {
 			IPath root = activeProject.getResource().getLocation().removeLastSegments(1).addTrailingSeparator();
 			IPath selectedProjectPath = root.append(activeProject.getPath());
 			IPath activefullPath = root.append(activePath);
-			System.out.println(selectedProjectPath);
-			System.out.println(activefullPath);
+//			System.out.println(selectedProjectPath);
+//			System.out.println(activefullPath);
 			File projectfile = selectedProjectPath.toFile();
 			File testClassFolder = activefullPath.toFile();
-			detectTestSmell(projectfile,testClassFolder);
-			IWorkbenchPage page= HandlerUtil.getActiveWorkbenchWindow(event).getActivePage();
-			IViewPart viewPart = page.findView(TestSmellResult.ID);
-			if (viewPart != null) {
-				page.hideView(viewPart);
+			if(!TestSmellUtilities.extractTestCases(testClassFolder).isEmpty()){
+				detectTestSmell(projectfile,testClassFolder);
+				IWorkbenchPage page= HandlerUtil.getActiveWorkbenchWindow(event).getActivePage();
+				IViewPart viewPart = page.findView(TestSmellResult.ID);
+				if (viewPart != null) {
+					page.hideView(viewPart);
+				}
+				try {
+					HandlerUtil.getActiveWorkbenchWindow(event).getActivePage().showView(TestSmellResult.ID);
+				} catch (PartInitException e) {
+					e.printStackTrace();
+				}
+			}else{
+				MessageDialog.openInformation(
+						window.getShell(),
+						"Warning: No Test Classes Found",
+						"No Test Classes have been found in the selected resources");
+				try {
+					HandlerUtil.getActiveWorkbenchWindow(event).getActivePage().showView("org.eclipse.ui.navigator.ProjectExplorer");
+				} catch (PartInitException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
-			try {
-				HandlerUtil.getActiveWorkbenchWindow(event).getActivePage().showView(TestSmellResult.ID);
-			} catch (PartInitException e) {
-				e.printStackTrace();
-			}
+			
 		}else {
 			MessageDialog.openInformation(
 					window.getShell(),
-					"TestSmellPlugin",
-					"Please at least selet a code file in the project explorer");
+					"Warning: No Source Code Selected",
+					"Please select a Source File, Package or Project folder in the project explorer view.");
 			try {
 				HandlerUtil.getActiveWorkbenchWindow(event).getActivePage().showView("org.eclipse.ui.navigator.ProjectExplorer");
 			} catch (PartInitException e) {
@@ -119,7 +138,7 @@ public class Handler1 extends AbstractHandler {
 		}
 		return null;
 	}
-	private void detectTestSmell(File ProjectFile, File TestClassFile ){
+	public void detectTestSmell(File ProjectFile, File TestClassFile ){
 		IWorkbench workbench = PlatformUI.getWorkbench();
 		IProgressService ps = workbench.getProgressService();
 		try {
@@ -132,10 +151,8 @@ public class Handler1 extends AbstractHandler {
 						HashMap<TestClassBean, Object> testSmellResult = new HashMap<>();
 						int timer = 2;	
 							detectionExample.prepareForDetection(monitor);
-							monitor.worked(1);
 							detectionExample.getDetectionResult(monitor);
 							testSmellResult .putAll(detectionExample.getTestSmellResult());
-							System.out.println(testSmellResult.toString());
 						candidates = new ArrayList<PluginCandidate>();
 						int idcounter = 0;
 						for (TestClassBean key : testSmellResult.keySet()) {
@@ -143,17 +160,6 @@ public class Handler1 extends AbstractHandler {
 							idcounter ++;
 						}
 						PluginCandidateProvider.INSTANCE.setPluginCandidates(candidates);
-						for (int i = 0; i < timer; i++) {
-							if(monitor != null && monitor.isCanceled())
-				    			throw new OperationCanceledException();
-							
-							TimeUnit.SECONDS.sleep(1);//fake the detecting process
-							if(monitor != null)
-								monitor.worked(1);
-						}
-						if (monitor != null) {
-							monitor.done();
-						}
 					} catch (Exception e) {
 						// TODO: handle exception
 					}// TODO Auto-generated method stub
@@ -165,7 +171,7 @@ public class Handler1 extends AbstractHandler {
 		}
 
 	}
-	private ISelectionListener selectionListener = new ISelectionListener() {
+	protected ISelectionListener selectionListener = new ISelectionListener() {
 		public void selectionChanged(IWorkbenchPart sourcepart, ISelection selection) {
 			
 			if (selection instanceof IStructuredSelection) {
@@ -179,6 +185,7 @@ public class Handler1 extends AbstractHandler {
 				}*/
 				IJavaProject javaProject = null;
 				if(element instanceof IJavaProject) {
+					System.out.println("javaProject selected");
 					javaProject = (IJavaProject)element;
 					selectedPath = javaProject.getPath();
 					selectedPackageFragmentRoot = null;
@@ -187,11 +194,29 @@ public class Handler1 extends AbstractHandler {
 					selectedType = null;
 					selectedMethod = null;
 					selectedField = null;
-				}
-				else if(element instanceof IPackageFragmentRoot) {
+				}else if(element instanceof IProject){
+					IProject ipProject = (IProject)element;
+					try {
+						if(ipProject.hasNature(JavaCore.NATURE_ID)){
+							javaProject = JavaCore.create(ipProject);
+							selectedPath = javaProject.getPath();
+							selectedPackageFragmentRoot = null;
+							selectedPackageFragment = null;
+							selectedCompilationUnit = null;
+							selectedType = null;
+							selectedMethod = null;
+							selectedField = null;
+						}
+					} catch (CoreException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					
+				}else if(element instanceof IPackageFragmentRoot) {
 					IPackageFragmentRoot packageFragmentRoot = (IPackageFragmentRoot)element;
 					javaProject = packageFragmentRoot.getJavaProject();
-					selectedPath = javaProject.getPath().addTrailingSeparator();
+					selectedPath = packageFragmentRoot.getPath().addTrailingSeparator();
+					//selectedPath = javaProject.getPath().addTrailingSeparator();
 					selectedPackageFragmentRoot = packageFragmentRoot;
 					selectedPackageFragment = null;
 					selectedCompilationUnit = null;
@@ -213,7 +238,8 @@ public class Handler1 extends AbstractHandler {
 				else if(element instanceof ICompilationUnit) {
 					ICompilationUnit compilationUnit = (ICompilationUnit)element;
 					javaProject = compilationUnit.getJavaProject();
-					IPath path = compilationUnit.getPath().removeLastSegments(1).addTrailingSeparator();
+					//IPath path = compilationUnit.getPath().removeLastSegments(1).addTrailingSeparator();
+					IPath path = compilationUnit.getPath();
 					selectedPath = path;
 					selectedCompilationUnit = compilationUnit;
 					selectedPackageFragmentRoot = null;

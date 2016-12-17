@@ -1,8 +1,10 @@
 package testsmell;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
+import testsmell.relatedCodeSmell.codeSmellResult;
 import testsmellplugin.IDeltaListener;
 import testsmellplugin.NullDeltaListener;
 
@@ -10,16 +12,11 @@ public enum PluginCandidateProvider {
     INSTANCE;
 
     private List<PluginCandidate> candidates;
+    private List<codeSmellResult> codeSmellResults;
     protected IDeltaListener listener = NullDeltaListener.getSoleInstance();//listener method to refresh view is not implemented
     private PluginCandidateProvider() {
     	candidates = new ArrayList<PluginCandidate>();
-            // Image here some fancy database access to read the persons and to
-            // put them into the model
-    	/*candidates.add(new PluginCandidate("zhan", "Zufall", "male"));
-    	candidates.add(new PluginCandidate("Reiner", "Babbel", "male"));
-    	candidates.add(new PluginCandidate("Marie", "Dortmund", "female"));
-    	candidates.add(new PluginCandidate("Holger", "Adams", "male"));
-    	candidates.add(new PluginCandidate("Juliane", "Adams", "female"));*/
+    	codeSmellResults = new ArrayList<codeSmellResult>();
     }
 
     
@@ -37,7 +34,22 @@ public enum PluginCandidateProvider {
     }
     public void removePluginCandidates(List<PluginCandidate> pcList){
     	this.candidates.removeAll(pcList);
-    	this.candidates.remove(0);
-    	System.out.println(this.candidates);
+    }
+    public List<codeSmellResult> getCodeSmellResults(){
+		return codeSmellResults;
+    	
+    }
+    public void setCodeSmellResult(List<codeSmellResult> csResults){
+    	if (!this.codeSmellResults.isEmpty()) {
+			this.codeSmellResults.clear();
+		}
+    	this.codeSmellResults.addAll(csResults);
+    }
+    public void addCodeSmellResult(List<codeSmellResult> csResults){
+    	this.codeSmellResults.addAll(csResults);
+    	
+    }
+    public void removeCodeSmellResult(Collection<codeSmellResult> csCodeSmellResults){
+    	this.codeSmellResults.removeAll(csCodeSmellResults);
     }
 }

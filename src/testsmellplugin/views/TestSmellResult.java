@@ -229,7 +229,7 @@ class ViewLabelProvider extends LabelProvider implements ITableLabelProvider {
 			PluginCandidate entry = (PluginCandidate) obj;
 			switch (index) {
 			case 0:
-				return entry.getTestClass().getTestCase().getBelongingPackage() + entry.getTestClass().getTestCase().getName();
+				return entry.getTestClass().getTestCase().getBelongingPackage() +"." + entry.getTestClass().getTestCase().getName();
 			default:
 				return "";
 			}
@@ -239,7 +239,6 @@ class ViewLabelProvider extends LabelProvider implements ITableLabelProvider {
 			//ConcurrentHashMap is not necessarily needed,
 			@SuppressWarnings("unchecked")
 			ConcurrentHashMap<TestClassBean, Object> entry = (ConcurrentHashMap<TestClassBean, Object>)obj;
-			System.out.println("lable provider instance of hashmap: " + entry.toString()); 
 			switch(index) {
 			case 0:
 				return "";
@@ -345,7 +344,7 @@ class ViewLabelProvider extends LabelProvider implements ITableLabelProvider {
 		                    public void handleEvent(Event e) {
 		                      switch (e.type) {
 		                      case SWT.Selection:
-		                    	System.out.println("button pressed at " + button.getData().toString());
+		                    	//System.out.println("button pressed at " + button.getData().toString());
 		                    	openDetailWindow(button.getData(), PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell());
 		                    	//AssertationRouletteDetailPage assertationRouletteDetailPage =new AssertationRouletteDetailPage(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell());
 		                    	//assertationRouletteDetailPage.open();
@@ -471,7 +470,7 @@ class ViewLabelProvider extends LabelProvider implements ITableLabelProvider {
 			HashMap.Entry<String, Object> OneSmell = (HashMap.Entry<String, Object>)testSmell.getValue();
 				String smellType = OneSmell.getKey();
 				Object smellData = OneSmell.getValue();
-				if (smellType.equalsIgnoreCase("AssertationRoulette")) {
+				if (smellType.equalsIgnoreCase("AssertionRoulette")) {
 					AssertationRouletteDetailPage assertationRouletteDetailPage =new AssertationRouletteDetailPage(testClassBean,smellData,PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell());
                 	assertationRouletteDetailPage.open();
 				}else if (smellType.equalsIgnoreCase("EagerTest")){

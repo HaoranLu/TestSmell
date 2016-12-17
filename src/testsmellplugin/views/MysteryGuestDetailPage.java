@@ -126,7 +126,7 @@ public class MysteryGuestDetailPage extends TitleAreaDialog {
 			item.setText(0, methodBean.getName());
 			
 		}
-		one.setToolTipText("refactoring tips");
+		one.setToolTipText("Refactoring Tips");
 		one.pack();
 
 		//TableViewer tableViewer = new TableViewer(composite, SWT.SINGLE | SWT.H_SCROLL | SWT.V_SCROLL | SWT.BORDER | SWT.FULL_SELECTION);
@@ -141,7 +141,7 @@ public class MysteryGuestDetailPage extends TitleAreaDialog {
 	 *            the parent composite
 	 */
 	protected void createButtonsForButtonBar(Composite parent) {
-		IcreateButton(parent, "Refactingtips", false);
+		IcreateButton(parent, "Refacting Tips", false);
 		createButton(parent, IDialogConstants.OK_ID, IDialogConstants.OK_LABEL, true);
 		
 	}

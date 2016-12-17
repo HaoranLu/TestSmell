@@ -63,7 +63,7 @@
             <command
                   commandId="TestSmellPlugin.commands.Command2"
                   id="TestSmellPlugin.menus.Command2"
-                  label="related code smell"
+                  label="Related Code Smell"
                   mnemonic="S"
                   tooltip="relates code smell detect">
             </command>
@@ -89,14 +89,6 @@
       </menuContribution>
    </extension>
    <extension
-         point="org.eclipse.ui.preferencePages">
-      <page
-            name="Test Smell settings"
-            class="testsmellplugin.preferences.SamplePreferencePage"
-            id="testsmellplugin.preferences.SamplePreferencePage">
-      </page>
-   </extension>
-   <extension
          point="org.eclipse.core.runtime.preferences">
       <initializer
             class="testsmellplugin.preferences.PreferenceInitializer">
@@ -109,19 +101,20 @@
             id="TestSmellPlugin">
       </category>
       <view
-            name="Test Smell Result"
-            icon="icons/sample.gif"
-            category="TestSmellPlugin"
-            class="testsmellplugin.views.SampleView"
-            id="testsmellplugin.views.SampleView">
-      </view>
-      <view
             allowMultiple="false"
             category="TestSmellPlugin"
             class="testsmellplugin.views.TestSmellResult"
             icon="icons/sample.gif"
             id="testsmellplugin.views.TestSmellResult"
             name="Test Smell Result">
+      </view>
+      <view
+            allowMultiple="false"
+            category="TestSmellPlugin"
+            class="testsmellplugin.views.RelatedCodeSmellResult"
+            icon="icons/sample.gif"
+            id="testsmellplugin.views.RelatedCodeSmellResult"
+            name="Related Code Smell">
       </view>
    </extension>
    <extension
@@ -141,6 +134,20 @@
       <contexts
             file="contexts.xml">
       </contexts>
+   </extension>
+   <extension
+         point="org.eclipse.team.svn.ui.commit">
+      <commit
+            class="testsmellplugin.SVNextension.CommitActionFatoryHook">
+      </commit>
+   </extension>
+   <extension
+         point="org.eclipse.ui.preferencePages">
+      <page
+            class="testsmellplugin.preferences.PreferencePage"
+            id="testsmellplugin.preferences.PreferencePage"
+            name="Test Smell Settings">
+      </page>
    </extension>
 
 </plugin>

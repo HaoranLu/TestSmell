@@ -76,7 +76,7 @@ public class SensitiveEqualityDetailPage extends TitleAreaDialog {
 		Control contents = super.createContents(parent);
 
 		// Set the title
-		setTitle("Assertation Roulette Information");
+		setTitle("Sensitive Equality Information");
 		// Set the image
 		if (image != null)
 			setTitleImage(image);
@@ -86,7 +86,7 @@ public class SensitiveEqualityDetailPage extends TitleAreaDialog {
 					testClassBean.getTestCase().getName() + 
 					" has " + 
 					assertionList.size() + 
-					" assertions"
+					" assertions using a sensitive equality"
 					, IMessageProvider.INFORMATION);
 		}
 
@@ -139,7 +139,7 @@ public class SensitiveEqualityDetailPage extends TitleAreaDialog {
 	 *            the parent composite
 	 */
 	protected void createButtonsForButtonBar(Composite parent) {
-		IcreateButton(parent, "Refactingtips", false);
+		IcreateButton(parent, "Refacting Tips", false);
 		createButton(parent, IDialogConstants.OK_ID, IDialogConstants.OK_LABEL, true);
 		
 	}

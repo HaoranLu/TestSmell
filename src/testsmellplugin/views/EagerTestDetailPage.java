@@ -1,19 +1,30 @@
 package testsmellplugin.views;
 
+import java.awt.Label;
+import java.awt.Point;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Set;
+import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.TitleAreaDialog;
+import org.eclipse.jface.layout.TreeColumnLayout;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.viewers.ColumnWeightData;
+import org.eclipse.jface.viewers.ITableLabelProvider;
+import org.eclipse.jface.viewers.ITreeContentProvider;
+import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.TableLayout;
 import org.eclipse.jface.viewers.TableViewer;
+import org.eclipse.jface.viewers.TreeViewer;
+import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -27,10 +38,15 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
+import org.eclipse.swt.widgets.Tree;
+import org.eclipse.swt.widgets.TreeColumn;
+import org.eclipse.swt.widgets.TreeItem;
 
 import it.unisa.scam14.beans.ClassBean;
 import it.unisa.scam14.beans.MethodBean;
 import it.unisa.scam14.beans.TestClassBean;
+import testsmell.PluginCandidate;
+import testsmell.PluginCandidateProvider;
 
 /* This class shows an about box, based on TitleAreaDialog
  */
@@ -69,9 +85,13 @@ public class EagerTestDetailPage extends TitleAreaDialog {
 			if (result.entrySet().size() > 1) {
 				this.multiClass = true;
 				this.MethodNumber = result.entrySet().size();
-			}else{
-				this.multiMethod = true;
 			}
+			for (Entry<ClassBean, ArrayList<MethodBean>> onEntry : result.entrySet() ) {
+				if(onEntry.getValue().size() > 1){
+					this.multiMethod = true;
+				}
+			}
+				
 		}
 	}
 
@@ -105,14 +125,14 @@ public class EagerTestDetailPage extends TitleAreaDialog {
 		if (eagertest != null && testClassBean != null) {
 			String str = "";
 			if (this.multiClass) {
-				str = " " + this.MethodNumber + "Classes in only one method";
+				str = " " + this.MethodNumber + " Classes in only one method";
 			}else if(this.multiMethod){
 				str = "more than one production class method in one test method";
 			}
 			setMessage("Test Class " + 
-					testClassBean.getTestCase().getBelongingPackage() + 
+					testClassBean.getTestCase().getBelongingPackage() + "." +
 					testClassBean.getTestCase().getName() + 
-					" is testing  " + 
+					" is testing " + 
 					str
 					, IMessageProvider.INFORMATION);
 		}
@@ -129,56 +149,19 @@ public class EagerTestDetailPage extends TitleAreaDialog {
 	 */
 	protected Control createDialogArea(Composite parent) {
 		Composite composite = (Composite) super.createDialogArea(parent);
-
-		// Create a table
-		Table table = new Table(composite, SWT.SINGLE | SWT.H_SCROLL | SWT.V_SCROLL | SWT.BORDER | SWT.FULL_SELECTION);
-		table.setLayoutData(new GridData(GridData.FILL_BOTH));
-		TableLayout layout = new TableLayout();
-		layout.addColumnData(new ColumnWeightData(140, true));
-		table.setLayout(layout);
-		// Create column and show
-		TableColumn one = new TableColumn(table, SWT.LEAD);
-		one.setWidth(DIALOG_DEFAULT_BOUNDS);
-		one.setText("Production Classes/Methods");
-
-
-		//table.setHeaderVisible(true);
-		table.setLinesVisible(true);
-
-		// Add some data
-		if(this.multiClass){
-			for(MethodBean testMethod : this.eagertest.keySet()) {
-				HashMap<ClassBean, ArrayList<MethodBean>> result = this.eagertest.get(testMethod);
-				for (ClassBean CBkey : result.keySet()) {
-					TableItem item = new TableItem(table, SWT.NONE);
-					item.setText(0,"In you test class method: " + testMethod.getName() + " is testing production class: " + CBkey.getBelongingPackage() + CBkey.getName());
-					/*for (MethodBean testedMethod : result.get(CBkey)) {
-						TableItem item= new Table(table, SWT.NONE);
-						item.setText(testedMethod.getName() + " testing " + );
-					}*/
-				}
-			}
-		}else{
-			for(MethodBean testMethod : this.eagertest.keySet()) {
-				HashMap<ClassBean, ArrayList<MethodBean>> result = this.eagertest.get(testMethod);
-				for (ClassBean CBkey : result.keySet()) {
-					for (MethodBean testedMethod : result.get(CBkey)) {
-						TableItem item= new TableItem(table, SWT.NONE);
-						item.setText(0,"Test Method: " + testMethod.getName() + " is testing " + testedMethod.getName() + "(" + testedMethod.getParameters() + ")" );
-					}
-				}
-			}
-		}
-//		for (String string : assertionList) {
-//			TableItem item = new TableItem(table, SWT.NONE);
-//			item.setText(0, string);
-//			
-//		}
-		
-		//one.setToolTipText("refactoring tips");
-		one.pack();
-
+		composite.setLayout(new GridLayout(1, true));
 		//TableViewer tableViewer = new TableViewer(composite, SWT.SINGLE | SWT.H_SCROLL | SWT.V_SCROLL | SWT.BORDER | SWT.FULL_SELECTION);
+		if (multiClass) {
+			org.eclipse.swt.widgets.Label tableTitle1 = new org.eclipse.swt.widgets.Label(composite, SWT.NULL);
+			tableTitle1.setText("Production Classes");
+			createProductionClassTable(composite);
+		}
+		if (multiMethod) {
+			org.eclipse.swt.widgets.Label tableTitle2 = new org.eclipse.swt.widgets.Label(composite, SWT.NULL);
+			tableTitle2.setText("Production Mehods");
+			createProductionMethodTable(composite);
+		}
+		
 		
 		return composite;
 	}
@@ -190,9 +173,76 @@ public class EagerTestDetailPage extends TitleAreaDialog {
 	 *            the parent composite
 	 */
 	protected void createButtonsForButtonBar(Composite parent) {
-		IcreateButton(parent, "Refactingtips", false);
+		IcreateButton(parent, "Refacting Tips", false);
 		createButton(parent, IDialogConstants.OK_ID, IDialogConstants.OK_LABEL, true);
 		
+	}
+	private void createProductionClassTable(Composite composite){
+		// Create a table
+				Table table = new Table(composite,SWT.H_SCROLL | SWT.V_SCROLL | SWT.BORDER | SWT.FULL_SELECTION);
+//				table.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_CENTER));
+				TableLayout layout = new TableLayout();
+				layout.addColumnData(new ColumnWeightData(140, true));
+				table.setLayout(layout);
+				// Create column and show
+				TableColumn one = new TableColumn(table, SWT.LEAD);
+				one.setWidth(DIALOG_DEFAULT_BOUNDS);
+				one.setText("Production Classes");
+
+
+				//table.setHeaderVisible(true);
+				table.setLinesVisible(true);
+
+				// Add some data
+				for(MethodBean testMethod : this.eagertest.keySet()) {
+					HashMap<ClassBean, ArrayList<MethodBean>> result = this.eagertest.get(testMethod);
+					for (ClassBean CBkey : result.keySet()) {
+						TableItem item = new TableItem(table, SWT.NONE);
+						//item.setText(0,"In you test class method: " + testMethod.getName() + " is testing production class: " + CBkey.getBelongingPackage() +"." + CBkey.getName());
+						item.setText(0," " + CBkey.getBelongingPackage() + "." + CBkey.getName());
+					}
+				}
+
+				
+				//one.setToolTipText("refactoring tips");
+				one.pack();
+				table.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+				
+	}
+	private void createProductionMethodTable(Composite composite){
+		// Create a table
+			Tree tree = new Tree(composite, SWT.H_SCROLL | SWT.V_SCROLL | SWT.BORDER | SWT.FULL_SELECTION);
+			TableLayout layout = new TableLayout();
+			layout.addColumnData(new ColumnWeightData(100, true));
+			layout.addColumnData(new ColumnWeightData(140, true));
+			layout.addColumnData(new ColumnWeightData(100, true));
+			tree.setLayout(layout);
+			TreeColumn t1 = new  TreeColumn(tree, SWT.LEFT);
+			TreeColumn t2 = new TreeColumn(tree, SWT.LEFT);
+			TreeColumn t3 = new TreeColumn(tree, SWT.LEFT);
+			t1.setText("Test Method");
+			t2.setText("Production Class");
+			t3.setText("Method");
+			tree.setHeaderVisible(true);
+			tree.setLinesVisible(true);
+			for(MethodBean testMethod : this.eagertest.keySet()) {
+				HashMap<ClassBean, ArrayList<MethodBean>> result = this.eagertest.get(testMethod);
+				TreeItem tmItem = new TreeItem(tree, SWT.NONE);
+				tmItem.setText(0, testMethod.getName() + "()");
+				for (ClassBean CBkey : result.keySet()) {
+					TreeItem pcItem = new TreeItem(tmItem, SWT.NONE);
+					pcItem.setText(1, CBkey.getBelongingPackage() + "." + CBkey.getName());
+					for (MethodBean testedMethod : result.get(CBkey)) {
+						TreeItem pmItem = new TreeItem(pcItem, SWT.NONE);
+						pmItem.setText(2, testedMethod.getName() + "(" + testedMethod.getParameters().toString().substring(1, testedMethod.getParameters().toString().length()-1) + ")" );
+					}
+				}
+			}
+			t1.pack();
+			t2.pack();
+			t3.pack();
+			tree.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+			
 	}
 
 	private Button IcreateButton(Composite parent, String buttonText, boolean defaultButton) {
@@ -221,5 +271,13 @@ public class EagerTestDetailPage extends TitleAreaDialog {
 		return button;
 		
 	}
+	@Override
+	protected boolean isResizable() {
+	    return true;
+	}
+//	@Override
+//	protected org.eclipse.swt.graphics.Point getInitialSize(){
+//		return new org.eclipse.swt.graphics.Point(450, 300);
+//	}
 
 }

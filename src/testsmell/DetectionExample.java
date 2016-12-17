@@ -1,20 +1,27 @@
 package testsmell;
 
 import java.io.File;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Vector;
+import java.util.concurrent.TimeUnit;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
+import org.eclipse.jface.operation.IRunnableWithProgress;
+import org.eclipse.ui.IWorkbench;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.progress.IProgressService;
 
 import it.unisa.scam14.beans.ClassBean;
 import it.unisa.scam14.beans.TestClassBean;
 import it.unisa.scam14.testSmellRules.AssertionRoulette;
 import it.unisa.scam14.utility.FolderToJavaProjectConverter;
 import it.unisa.scam14.utility.TestSmellUtilities;
+import testsmellplugin.handlers.Handler1;
 
 public class DetectionExample {
 	File pWorkingDirectory = null;
@@ -31,49 +38,90 @@ public class DetectionExample {
 		this.system = new Vector<ClassBean>();
 		this.testSmellResult = new HashMap<>();
 	}
+	public void prepareForDetection(){
+		List<ClassBean> tcc = new ArrayList<>();
+		Vector<ClassBean> sys = new Vector<>();
+		List<TestClassBean> tcs = new ArrayList<>();
+		tcc = TestSmellUtilities.extractTestCases(this.pSelectedDirectory);
+//		for (File ff : pSelectedDirectory.listFiles()) {
+//			tcc.addAll(TestSmellUtilities.extractTestCases(ff));
+//		}
+		this.testCasesClasses.addAll(tcc);
+		sys = FolderToJavaProjectConverter.extractClasses(pWorkingDirectory.getAbsolutePath());
+		this.system.addAll(sys);
+		for (ClassBean tc : tcc) {
+			Collection<ClassBean> productionClasses = TestSmellUtilities.findProductionClassUsingDependencies(tc, sys);
+			tcs.add(new TestClassBean(tc, new ArrayList<ClassBean>(productionClasses)));
+		}
+		this.testsCases.addAll(tcs);
+	}
 	public void prepareForDetection(IProgressMonitor monitor) {
 		List<ClassBean> tcc = new ArrayList<>();
 		Vector<ClassBean> sys = new Vector<>();
 		List<TestClassBean> tcs = new ArrayList<>();
 		if (monitor != null) {
-			monitor.beginTask("Extracting Test Classes", pSelectedDirectory.listFiles().length);
-			/*for (File ff : pSelectedDirectory.listFiles()) {
-				tcc.addAll(TestSmellUtilities.extractTestCases(ff));
-				monitor.worked(1);
-			}*/
+			monitor.beginTask("Extracting Test Classes", 3);
+
 			tcc = TestSmellUtilities.extractTestCases(this.pSelectedDirectory);
 			this.testCasesClasses.addAll(tcc);
-			monitor.done();
-		}
-		if (monitor != null) {
-			monitor.beginTask("Extracting all production classes, this may take a little bit longer..", pWorkingDirectory.listFiles().length);
+			monitor.worked(1);
+		
+			monitor.setTaskName("Extracting Production Classes, this may take a little bit longer...");
 			sys = FolderToJavaProjectConverter.extractClasses(pWorkingDirectory.getAbsolutePath());
-			/*for (File ff : pWorkingDirectory.listFiles()) {
-				if(monitor != null && monitor.isCanceled())
-	    			throw new OperationCanceledException();
-				System.out.println(ff.toString());
-				sys.addAll(FolderToJavaProjectConverter.extractClasses(ff.getAbsolutePath()));
-				monitor.worked(1);
-			}*/
 			this.system.addAll(sys);
-			monitor.done();
-		}
-		if (monitor != null) {
-			monitor.beginTask("Constructing Test Cases", tcc.size());
+			monitor.worked(1);
+			monitor.setTaskName("Idenrifying Test Smells...");
 			for (ClassBean tc : tcc) {
+				if (monitor.isCanceled()) {
+					throw new OperationCanceledException();
+
+				}
 				Collection<ClassBean> productionClasses = TestSmellUtilities.findProductionClassUsingDependencies(tc, sys);
 				tcs.add(new TestClassBean(tc, new ArrayList<ClassBean>(productionClasses)));
-				monitor.worked(1);
 			}
 			this.testsCases.addAll(tcs);
 			monitor.done();
 		}
 
 	}
+	public void getDetectionResult(){
+		HashMap<TestClassBean, Object> result = new HashMap<>();
+		TestSmellComputation metrics = new TestSmellComputation();
+		for (TestClassBean tClassBean : testsCases) {
+			//metrics.computeTestSmellRules(tClassBean);
+			HashMap<String, Object> tmp = new HashMap<>();
+			Object AR = metrics.assertionRoulette.getAssertion(tClassBean);
+			Object ET = metrics.eagerTest.getEagerTest(tClassBean);
+			Object MG = metrics.mysteryGuest.getMysteryGuest(tClassBean);
+			Object GF = metrics.generalFixture.getGeneralFixture(tClassBean);
+			Object SE = metrics.sensitiveEquality.getSensitiveEquality(tClassBean);
+			if (AR != null) {
+				tmp.put("AssertionRoulette",AR);
+			}
+			if (ET != null) {
+				tmp.put("EagerTest", ET);
+			}
+			if (MG != null){
+				tmp.put("MysteryGuest", MG);
+			}
+			if (GF != null) {
+				tmp.put("GeneralFixture", GF);
+			}
+			if (SE != null) {
+				tmp.put("SensitiveEquality", SE);
+			}
+			if (ET !=null || AR != null || MG !=null || GF != null || SE != null) {
+				result.put(tClassBean, tmp);
+			}
+			//System.out.println(result);
+		}
+		this.testSmellResult.putAll(result);
+	}
 	public void getDetectionResult(IProgressMonitor monitor) {
 		HashMap<TestClassBean, Object> result = new HashMap<>();
 		TestSmellComputation metrics = new TestSmellComputation();
 		if (monitor != null) {
+			monitor.setTaskName("Detecting in process..");
 			for (TestClassBean tClassBean : testsCases) {
 				if (monitor.isCanceled()) {
 					throw new OperationCanceledException();
@@ -91,7 +139,7 @@ public class DetectionExample {
 				Object SE = metrics.sensitiveEquality.getSensitiveEquality(tClassBean);
 				monitor.worked(1);
 				if (AR != null) {
-					tmp.put("AssertationRoulette",AR);
+					tmp.put("AssertionRoulette",AR);
 				}
 				if (ET != null) {
 					tmp.put("EagerTest", ET);
@@ -108,7 +156,7 @@ public class DetectionExample {
 				if (ET !=null || AR != null || MG !=null || GF != null || SE != null) {
 					result.put(tClassBean, tmp);
 				}
-				System.out.println(result);
+				//System.out.println(result);
 				monitor.worked(1);
 			}
 			this.testSmellResult.putAll(result);
@@ -116,8 +164,16 @@ public class DetectionExample {
 		}
 	}
 	public void excuteDetectionExample() {
+		List<ClassBean> tcc = new ArrayList<>();
+		Vector<ClassBean> sys = new Vector<>();
+		List<TestClassBean> tcs = new ArrayList<>();
 		//Extract all the test classes form a directory containing Java files, directory with granularity of package or project
 		List<ClassBean> testCasesClasses = TestSmellUtilities.extractTestCases(this.pSelectedDirectory);
+		
+//		for (File ff : pSelectedDirectory.listFiles()) {
+//			tcc.addAll(TestSmellUtilities.extractTestCases(ff));
+//		}
+		
 		//Extract all system classes, regardless of the granularity.
 		System.out.println("Starting extract all classes");
 		Vector<ClassBean> system = FolderToJavaProjectConverter.extractClasses(this.pWorkingDirectory.getAbsolutePath());
@@ -133,21 +189,23 @@ public class DetectionExample {
 		TestSmellComputation metrics = new TestSmellComputation();
 		for (TestClassBean tClassBean : testsCases) {
 			metrics.computeTestSmellRules(tClassBean);
-			System.out.println(metrics.assertionRoulette.getAssertion(tClassBean));
-			System.out.println(metrics.eagerTest.getEagerTest(tClassBean));
+			System.out.println("AR: " + metrics.assertionRoulette.getAssertion(tClassBean));
+			System.out.println("ET: " + metrics.eagerTest.getEagerTest(tClassBean));
 		}
 
 	}
+	
 	public static void main(String[] args) {
-		File projectfile = new File("/Users/luhaoran/Prpjects/jackrabbit/jackrabbit-core");
+		File projectfile = new File("/Users/luhaoran/Prpjects/jackrabbit/jackrabbit-jcr-server/");
+		///Users/luhaoran/Prpjects/jackrabbit/jackrabbit-jcr-server/src/test/java/org/apache/jackrabbit/server/remoting/davex
 		///Users/luhaoran/Prpjects/jackrabbit/jackrabbit-core/src/main/java/org/apache/jackrabbit/core/
 		///Users/luhaoran/Prpjects/jackrabbit/jackrabbit-core/src/main/java/org/apache/jackrabbit/core/
 		System.out.println(projectfile.exists());
-		File testclass = new File("/Users/luhaoran/Prpjects/jackrabbit/jackrabbit-core/src/test/java/org/apache/jackrabbit/core/config/");
+		File testclass = new File("/Users/luhaoran/Prpjects/jackrabbit/jackrabbit-jcr-server/src/test/java/org/apache/jackrabbit/server/remoting/davex/BatchReadConfigTest.java");
 		System.out.println(testclass.exists());
 		DetectionExample test = new DetectionExample(projectfile, testclass);
 		test.excuteDetectionExample();
-		
+
 	}
 	public HashMap<TestClassBean, Object> getTestSmellResult() {
 		return testSmellResult;

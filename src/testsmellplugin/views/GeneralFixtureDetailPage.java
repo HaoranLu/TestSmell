@@ -3,6 +3,7 @@ package testsmellplugin.views;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.HashSet;
 
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.IMessageProvider;
@@ -33,7 +34,7 @@ import it.unisa.scam14.beans.TestClassBean;
  */
 public class GeneralFixtureDetailPage extends TitleAreaDialog {
 	private TestClassBean testClassBean;
-	private ArrayList<InstanceVariableBean> unusedVariable;
+	private HashSet<InstanceVariableBean> unusedVariable;
 	private Image image;
 
 	/**
@@ -48,7 +49,7 @@ public class GeneralFixtureDetailPage extends TitleAreaDialog {
 		try {
 			//image = new Image(null, new FileInputStream("java2s.gif"));
 			System.out.println(smellData.getClass());
-			this.unusedVariable = (ArrayList<InstanceVariableBean>) smellData;
+			this.unusedVariable = (HashSet<InstanceVariableBean>) smellData;
 			this.testClassBean = testClassBean;
 		} catch (Exception e) {
 			image = null;
@@ -122,10 +123,10 @@ public class GeneralFixtureDetailPage extends TitleAreaDialog {
 		// Add some data
 		for (InstanceVariableBean instanceVariableBean : unusedVariable) {
 			TableItem item = new TableItem(table, SWT.NONE);
-			item.setText(0, instanceVariableBean.getType() + instanceVariableBean.getName() + "has not been used");
+			item.setText(0, instanceVariableBean.getType() +" " + instanceVariableBean.getName());
 			
 		}
-		one.setToolTipText("refactoring tips");
+		one.setToolTipText("refactoring Tips");
 		one.pack();
 
 		//TableViewer tableViewer = new TableViewer(composite, SWT.SINGLE | SWT.H_SCROLL | SWT.V_SCROLL | SWT.BORDER | SWT.FULL_SELECTION);
@@ -140,7 +141,7 @@ public class GeneralFixtureDetailPage extends TitleAreaDialog {
 	 *            the parent composite
 	 */
 	protected void createButtonsForButtonBar(Composite parent) {
-		IcreateButton(parent, "Refactingtips", false);
+		IcreateButton(parent, "Refacting Tips", false);
 		createButton(parent, IDialogConstants.OK_ID, IDialogConstants.OK_LABEL, true);
 		
 	}
