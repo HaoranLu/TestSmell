@@ -11,7 +11,13 @@ import it.unisa.scam14.badSmellRules.GodClassRule;
 import it.unisa.scam14.badSmellRules.LongMethodRule;
 import it.unisa.scam14.badSmellRules.SpaghettiCodeRule;
 import it.unisa.scam14.beans.ClassBean;
-
+/**
+ * Use Rules from BSAnalyzer and the Association rules to detect code smell.
+ * <p>
+ * Please be careful of the Association rules String. "SC","CDSBP", "BC"
+ * @author Haoran Lu
+ *
+ */
 public class CodeSmellComputation {
 
 	public GodClassRule godClassRule;
@@ -31,6 +37,12 @@ public class CodeSmellComputation {
 		this.longMethodRule = new LongMethodRule();
 		this.pSystemType = "unknown";
 	}
+	/**
+	 * Detect Code Smell in the list of Production classes
+	 * @param productionClasses
+	 * @param rule can get rules from smellSssociationRules.INSTANCE 
+	 * @return null for no smell found and the key of the Map is code smell Type
+	 */
 	public Map<String, ClassBean> detectUseRule(ArrayList<ClassBean> productionClasses, String[] rule){
 		Map<String, ClassBean> rtObject = new HashMap<>();
 		int counter = rule.length;

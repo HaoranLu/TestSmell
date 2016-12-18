@@ -17,14 +17,23 @@ import java.util.Properties;
 import testsmell.PluginCandidate;
 
 /**
- * @author luhaoran
+ * provide rule to the related code smell detection.
+ * <p>
+ * Rule are read from properties file inside resource floder.
+ * Default rules will be load if properties file not found or error
+ * @author Haoran Lu
  *
  */
 public enum smellAssociationRules {
 	INSTANCE;
 	private HashMap<String, String[]> Rules;
+	/**
+	 * this indicate the properties file name in the resource folder
+	 */
 	private String filePath = "AssociationRules.properties";
-	
+	/**
+	 * Read the properties file to initialize Rule at constructing
+	 */
 	private smellAssociationRules() {
 
 		Rules = new HashMap<String, String[]>();
@@ -61,6 +70,12 @@ public enum smellAssociationRules {
 	public HashMap<String, String[]> getRules() {
 		return Rules;
 	}
+	/**
+	 * set the smell association rules using given properties.
+	 * <p>
+	 * Be careful, make sure all the properties appears in the properties file
+	 * @param prop
+	 */
 	public void SetRulesUsingProperty(Properties prop){
 		Rules = new HashMap<String, String[]>();
 		String AssertionRoulette = prop.getProperty("AssertionRoulette");
@@ -74,6 +89,9 @@ public enum smellAssociationRules {
 	   	Rules.put("GeneralFiture", getArrayfromString(GeneralFixture));
 	   	Rules.put("Sensitive", getArrayfromString(SensitiveEquality));
 	}
+	/**
+	 * set default rules.
+	 */
 	public void SetDefault(){
 		Rules = new HashMap<String, String[]>();
 	   	String[] AssertionRoulette ={ "CDSBP", "BC"};
@@ -87,6 +105,11 @@ public enum smellAssociationRules {
 	   	Rules.put("GeneralFiture", GeneralFixture);
 	   	Rules.put("Sensitive", SensitiveEquality);
 	}
+	/**
+	 * use regex to get Array from a comma split string
+	 * @param str
+	 * @return String[] . For example, ["SC","BC"]
+	 */
 	public String[] getArrayfromString(String str){
 		List<String> items = Arrays.asList(str.split("\\s*,\\s*"));
 		return (String [])items.toArray();

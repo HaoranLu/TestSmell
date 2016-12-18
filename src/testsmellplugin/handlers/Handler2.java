@@ -38,9 +38,10 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 
 /**
- * Our sample handler extends AbstractHandler, an IHandler base class.
+ * Related Code Smell menu option
+ * the test smell detection function is from Handler1
  * @see org.eclipse.core.commands.IHandler
- * @see org.eclipse.core.commands.AbstractHandler
+ * @see Handler1
  */
 public class Handler2 extends Handler1 {
 
@@ -91,6 +92,11 @@ public class Handler2 extends Handler1 {
 		
 		return null;
 	}
+	/**
+	 * Similar with Handler1.detectTestSmell but this detect code smell use rules from the smellAssociationRules.INSTANCE
+	 * @param testSmells
+	 * @return A list of codeSmellResult will be return
+	 */
 	private List<codeSmellResult> detectCodeSmell(List<PluginCandidate> testSmells){
 		IWorkbench workbench = PlatformUI.getWorkbench();
 		IProgressService ps = workbench.getProgressService();
@@ -103,7 +109,7 @@ public class Handler2 extends Handler1 {
 				public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 					try {
 						if (monitor != null) {
-							monitor.beginTask("Extracting Test Classes", testSmells.size());
+							monitor.beginTask("Detecting Related Code Smells...", testSmells.size());
 							for (PluginCandidate pluginCandidate : testSmells) {
 								ClassBean testClass = pluginCandidate.getTestClass().getTestCase();
 								ArrayList<ClassBean> productionClasses = pluginCandidate.getTestClass().getProductionClasses();

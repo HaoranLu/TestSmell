@@ -32,6 +32,15 @@ public class CommitWarningMessageDialog extends MessageDialog implements ICommit
 	private Collection allFilesToCommit;
 	private ICommentDialogPanel panel;
 	private Shell parent;
+	/**
+	 * open the warning window
+	 * @param allFilesToCommit
+	 * @param panel I don't know what this is but keep it is better than remove it
+	 * @param parent
+	 * @param title
+	 * @param message
+	 * @return the warning window will be return but not opened.
+	 */
 	public static CommitWarningMessageDialog open(Collection allFilesToCommit, ICommentDialogPanel panel,Shell parent, String title,
 			String message){
 		String[] dialogButtonLabels = {"Proceed", "Test Smells"};
@@ -51,6 +60,9 @@ public class CommitWarningMessageDialog extends MessageDialog implements ICommit
 		String message = this.panel.getMessage();
 		return message;
 	}
+	/**
+	 * open different view according to different button and pass the return code
+	 */
 	protected void buttonPressed(int buttonId) {
 		setReturnCode(buttonId);
 		if (buttonId == CANCEL) {

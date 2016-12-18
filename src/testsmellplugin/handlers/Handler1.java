@@ -57,7 +57,9 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.ui.PlatformUI;
 /**
- * Our sample handler extends AbstractHandler, an IHandler base class.
+ * Detect Test Smell menu option
+ * based on sample handler extends AbstractHandler, an IHandler base class.
+ * for key binding please check plugin.xml
  * @see org.eclipse.core.commands.IHandler
  * @see org.eclipse.core.commands.AbstractHandler
  */
@@ -77,21 +79,20 @@ public class Handler1 extends AbstractHandler {
 	public Object execute(ExecutionEvent event) throws ExecutionException {
 		IWorkbenchWindow window = HandlerUtil.getActiveWorkbenchWindowChecked(event);
 		//ISelection selection = HandlerUtil.getCurrentSelection(event);
-		IPreferenceStore store = Activator.getDefault().getPreferenceStore();
+		//IPreferenceStore store = Activator.getDefault().getPreferenceStore();
+		//following comments show how to get preference of this plugin
 //		boolean ena = store.getBoolean(PreferenceConstants.PREF_AUTO_DETECT_TESTSMELL);
 //		String choice = store.getString(PreferenceConstants.PREF_AUTO_DETECT_RANGE);
 //		MessageDialog.openInformation(
 //				window.getShell(),
 //				"preference",
 //				"range: "+choice + " enable: " + ena);
-//		window.getSelectionService().addSelectionListener(selectionListener);
+		window.getSelectionService().addSelectionListener(selectionListener);
 		if (projectSelected) {
 			//excute detectTestSmell and show test smell result view
 			//testsmell result use singleton.
 			this.activeProject = this.selectedProject;
 			IPath activePath = this.selectedPath;
-			
-			//IPath root = ResourcesPlugin.getWorkspace().getRoot().getLocation();
 			IPath root = activeProject.getResource().getLocation().removeLastSegments(1).addTrailingSeparator();
 			IPath selectedProjectPath = root.append(activeProject.getPath());
 			IPath activefullPath = root.append(activePath);
@@ -138,6 +139,12 @@ public class Handler1 extends AbstractHandler {
 		}
 		return null;
 	}
+	/**
+	 * Detect test smell in given test class file in the range of project file
+	 * write the test smell result into the singleton PluginCandidateProvider
+	 * @param ProjectFile The project directory
+	 * @param TestClassFile The diretory of test classes
+	 */
 	public void detectTestSmell(File ProjectFile, File TestClassFile ){
 		IWorkbench workbench = PlatformUI.getWorkbench();
 		IProgressService ps = workbench.getProgressService();
@@ -171,6 +178,13 @@ public class Handler1 extends AbstractHandler {
 		}
 
 	}
+	
+	
+	/**
+	 * this listener get the project and selection to feed the test smell detection process.
+	 * <p>
+	 * The logic about different granularity Detection can be realize here
+	 */
 	protected ISelectionListener selectionListener = new ISelectionListener() {
 		public void selectionChanged(IWorkbenchPart sourcepart, ISelection selection) {
 			

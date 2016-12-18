@@ -53,7 +53,13 @@ import testsmell.PluginCandidateProvider;
 import testsmellplugin.Activator;
 import testsmellplugin.preferences.PreferenceConstants;
 import testsmellplugin.views.CommitWarningMessageDialog;
-
+/**
+ * Contribute to the Subversice extension point.
+ * <p>
+ * only modified the getCommitDialog method
+ * @author Haoran Lu
+ *
+ */
 public class CommitActionFatoryHook implements ICommitActionFactory {
 	private static final String className = CommitActionFatoryHook.class.getName();
 	DefaultCommitActionFactory defaultCommitActionFactory = new DefaultCommitActionFactory();
@@ -77,12 +83,16 @@ public class CommitActionFatoryHook implements ICommitActionFactory {
 		defaultCommitActionFactory.cancelMessage(commentManager);		
 	}
 
+	/**
+	 * check Test Smell according to the preference
+	 * show warning if test smell is found
+	 */
 	@Override
 	public ICommitDialog getCommitDialog(Shell shell, Collection allFilesToCommit, ICommentDialogPanel panel) {
 
 		boolean haveTestSmell = false;
 		ICommitDialog defaultCommitDialog = defaultCommitActionFactory.getCommitDialog(shell, allFilesToCommit, panel);
-		System.out.println("********************* customized commit action called**********************");
+		//System.out.println("********************* customized commit action called**********************");
 		IPreferenceStore store = Activator.getDefault().getPreferenceStore();
 		boolean AutoDetect = store.getBoolean(PreferenceConstants.PREF_AUTO_DETECT_TESTSMELL);
 		if(!AutoDetect){
@@ -113,6 +123,11 @@ public class CommitActionFatoryHook implements ICommitActionFactory {
 		defaultCommitActionFactory.performAfterCommitTasks(operation, revisionProvider, dependsOn, part);
 		
 	}
+	/**
+	 * Given a collection of org.eclipse.core.internal.resources.File, run test smell detection and write result to PluginCandidateProvider
+	 * @param allFilesToCommit
+	 * @return
+	 */
 	public boolean allTestHaveTestSmell(Collection allFilesToCommit){
 		boolean returnObj = false;
 		ArrayList<PluginCandidate> candidates = new ArrayList<PluginCandidate>();
@@ -163,6 +178,11 @@ public class CommitActionFatoryHook implements ICommitActionFactory {
 		}
 		return returnObj;
 	}
+	/**
+	 * extract only new File in the committed file and run test smell detection on them
+	 * @param allFilesToCommit
+	 * @return true for have test smell.
+	 */
 	public boolean onlyNewTestHaveTestSmell(Collection allFilesToCommit){
 		boolean returnObj = false;
 		HashSet<IResource> treatAsEdit = createTreatasEdit(allFilesToCommit);
@@ -180,6 +200,11 @@ public class CommitActionFatoryHook implements ICommitActionFactory {
 			return false;
 		}
 	}
+	/**
+	 * grouping files according to different project
+	 * @param Files
+	 * @return HashMap&lt;File, List&lt;File&gt;&gt; key is the project directory and value is a list of file belong to the project
+	 */
 	public HashMap<File, List<File>> ExtractProject(Collection<org.eclipse.core.internal.resources.File> Files){
 		HashMap<File, List<File>> rtHashMap = new HashMap<>();
 		HashMap<File, List<File>> tempMap = new HashMap<>();
@@ -203,6 +228,11 @@ public class CommitActionFatoryHook implements ICommitActionFactory {
 		rtHashMap.putAll(tempMap);
 		return rtHashMap;
 	}
+	/**
+	 * Get SVN data
+	 * @param resources
+	 * @return HashSet&lt;IResource&gt; the resources as considered as edit
+	 */
 	protected HashSet<IResource> createTreatasEdit(Collection resources) {
 		HashSet<IResource> treatAsEdit = new HashSet();
 		if (SVNTeamPreferences.getBehaviourBoolean(SVNTeamUIPlugin.instance().getPreferenceStore(), SVNTeamPreferences.BEHAVIOUR_TREAT_REPLACEMENT_AS_EDIT_NAME)) {
@@ -216,6 +246,12 @@ public class CommitActionFatoryHook implements ICommitActionFactory {
 		}
 		return treatAsEdit;
 	}
+	/**
+	 * Get the content of the resource. modified/new
+	 * @param treatAsEdit
+	 * @param local
+	 * @return modified/new
+	 */
 	protected String contentStatusAsString(HashSet<IResource> treatAsEdit, ILocalResource local) {
 		String status = ""; //$NON-NLS-1$
 		if (!IStateFilter.ST_NORMAL.equals(local.getTextStatus())) {

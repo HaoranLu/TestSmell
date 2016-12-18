@@ -6,7 +6,11 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.team.svn.ui.extension.factory.ICommentDialogPanel;
 import org.eclipse.team.svn.ui.extension.factory.ICommitDialog;
 import org.eclipse.team.svn.ui.extension.impl.DefaultCommitActionFactory;
-
+/**
+ * this class is not used but can help you understand how ICommitDialog is used
+ * @author Haoran Lu
+ *
+ */
 public class BlockingCommitActionFactory extends DefaultCommitActionFactory {
 	private static final String className = BlockingCommitActionFactory.class.getName();
 

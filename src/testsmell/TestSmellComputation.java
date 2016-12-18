@@ -17,7 +17,8 @@ import it.unisa.scam14.testSmellRules.MysteryGuest;
 import it.unisa.scam14.testSmellRules.SensitiveEquality;
 
 /**
- * @author luhaoran
+ * This is a class copied from the BSAnalyzer computation. Just to gather all the TestSmell Rules.
+ * @author Haoran Lu
  *
  */
 public class TestSmellComputation {

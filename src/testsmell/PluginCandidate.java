@@ -5,12 +5,30 @@ import java.util.HashMap;
 import java.util.List;
 import it.unisa.scam14.beans.ClassBean;
 import it.unisa.scam14.beans.TestClassBean;
-
+/**
+ * This class is used for feeding the View of TestSmellPlugin.
+ * <p>
+ * What we should focus is the TestClassBean testClass and HashMap(String, Object) testsmell.
+ * The String field of this class is not needed.
+ * @author Haoran Lu
+ *
+ */
 public class PluginCandidate {
-	
+	/**
+	 * not needed
+	 */
 	public int id = 0;
+	/**
+	 * not needed
+	 */
 	public String testSmellType;
+	/**
+	 * not needed
+	 */
 	public String testSmellSourceEntity;
+	/**
+	 * not needed
+	 */
 	public String testSmellTargetClass;
 	public TestClassBean testClass;
 	public HashMap<String, Object> testSmell;
@@ -22,7 +40,12 @@ public class PluginCandidate {
 		this.testSmell = new HashMap<>();
 				
 	}
-	
+	/**
+	 * This constructor is not useful
+	 * @param testSmellType
+	 * @param testSmellSourceEntity
+	 * @param testSmellTargetClass
+	 */
 	public PluginCandidate(String testSmellType, String testSmellSourceEntity, String testSmellTargetClass) {
 		super();
 		this.testSmellType = testSmellType;
@@ -89,6 +112,15 @@ public class PluginCandidate {
 		return true;
 	}
 
+	/**
+	 * 
+	 * @param id what ever you want
+	 * @param testSmellType Any String is ok
+	 * @param testSmellSourceEntity Any String is ok
+	 * @param testSmellTargetClass Any String is ok
+	 * @param testClass Be careful, this is TestClassBean, not ClassBean
+	 * @param testSmell key is the string indicates smell type. Object see BSAnalyzer TestSmellRules.
+	 */
 	public PluginCandidate(int id, String testSmellType, String testSmellSourceEntity, String testSmellTargetClass,
 			TestClassBean testClass, HashMap<String, Object> testSmell) {
 		super();

@@ -22,7 +22,10 @@ import testsmellplugin.Activator;
 
 
 /**
- * @author luhaoran
+ * Preference page of Test Smell Settings.
+ * <p>
+ * the radio button are slaves of the check button. Go to Preference~Test Smell Settings to see the GUI
+ * @author Haoran Lu
  *
  */
 public class PreferencePage extends org.eclipse.jface.preference.PreferencePage implements IWorkbenchPreferencePage {

@@ -3,8 +3,16 @@ package testsmell.relatedCodeSmell;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-
+/**
+ * run this class to test the properties after you modified them
+ * @author Haoran Lu
+ *
+ */
 public class TestPropertyFiles {
+	/**
+	 * name of file inside the resource folder.
+	 * modify if needed
+	 */
 	private String filePath = "AssociationRules.properties";
 	
 	public static void main(String[] args) {

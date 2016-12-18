@@ -22,7 +22,17 @@ import it.unisa.scam14.testSmellRules.AssertionRoulette;
 import it.unisa.scam14.utility.FolderToJavaProjectConverter;
 import it.unisa.scam14.utility.TestSmellUtilities;
 import testsmellplugin.handlers.Handler1;
-
+/**
+ * DetectionExample for simplify test Smell Detection process.
+ * <p>
+ * Use this class to detect Test smell instead of call each Test smell rule separately
+ * 1. prepareforDetection
+ * 2. getDetectionResult
+ * 3. getTestSmellResult()
+ * A monitor can be take in to show progress bar.
+ * @author Haoran Lu
+ *
+ */
 public class DetectionExample {
 	File pWorkingDirectory = null;
 	File pSelectedDirectory = null;
@@ -30,6 +40,12 @@ public class DetectionExample {
 	Vector<ClassBean> system = null;
 	List<TestClassBean> testsCases = null;
 	HashMap<TestClassBean, Object> testSmellResult = null;
+	/**
+	 * 
+	 * @param pWorkingDirectory The project directory, not a single file
+	 * @param pSelectedDirectory The selected file, a single file or a directory.
+	 *
+	 */
 	public DetectionExample(File pWorkingDirectory, File pSelectedDirectory) {
 		this.pWorkingDirectory = pWorkingDirectory;
 		this.pSelectedDirectory = pSelectedDirectory;
@@ -38,6 +54,9 @@ public class DetectionExample {
 		this.system = new Vector<ClassBean>();
 		this.testSmellResult = new HashMap<>();
 	}
+	/**
+	 * call this before call getDetectionResult
+	 */
 	public void prepareForDetection(){
 		List<ClassBean> tcc = new ArrayList<>();
 		Vector<ClassBean> sys = new Vector<>();
@@ -55,6 +74,9 @@ public class DetectionExample {
 		}
 		this.testsCases.addAll(tcs);
 	}
+	/**
+	 * call this before call getDetectionResult
+	 */
 	public void prepareForDetection(IProgressMonitor monitor) {
 		List<ClassBean> tcc = new ArrayList<>();
 		Vector<ClassBean> sys = new Vector<>();
@@ -84,6 +106,9 @@ public class DetectionExample {
 		}
 
 	}
+	/**
+	 * call this only after call prepareForDetection
+	 */
 	public void getDetectionResult(){
 		HashMap<TestClassBean, Object> result = new HashMap<>();
 		TestSmellComputation metrics = new TestSmellComputation();
@@ -117,6 +142,9 @@ public class DetectionExample {
 		}
 		this.testSmellResult.putAll(result);
 	}
+	/**
+	 * call this only after call prepareForDetection
+	 */
 	public void getDetectionResult(IProgressMonitor monitor) {
 		HashMap<TestClassBean, Object> result = new HashMap<>();
 		TestSmellComputation metrics = new TestSmellComputation();
@@ -163,6 +191,9 @@ public class DetectionExample {
 			monitor.done();
 		}
 	}
+	/**
+	 * this method is for debug purpose. Please don't use this.
+	 */
 	public void excuteDetectionExample() {
 		List<ClassBean> tcc = new ArrayList<>();
 		Vector<ClassBean> sys = new Vector<>();

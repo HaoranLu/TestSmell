@@ -1,5 +1,9 @@
 package testsmellplugin;
-
+/** 
+ * prepare for more elegant view refresh, Currently not needed. Just ignore
+ * @author Haoran Lu
+ *
+ */
 public class DeltaEvent {
 
 	protected Object actedUpon;

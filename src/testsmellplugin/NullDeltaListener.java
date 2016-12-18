@@ -1,5 +1,9 @@
 package testsmellplugin;
-
+/** 
+ * prepare for more elegant view refresh, Currently not needed. Just ignore
+ * @author Haoran Lu
+ *
+ */
 public class NullDeltaListener implements IDeltaListener{
 	protected static NullDeltaListener soleInstance = new NullDeltaListener();
 	public static NullDeltaListener getSoleInstance() {
