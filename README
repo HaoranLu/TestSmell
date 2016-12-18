@@ -1,5 +1,13 @@
 This is a Eclipse Plugin that helps developer avoid test smell in their Test Code. 
-Currently under developing. 
-//TO-DO
-SVN commit action extension
-Related code smell detection and display
+
+## Installation
+First download [Eclipse PDE](http://www.eclipse.org/pde/) from here
+
+This Plugin relies on [Subversive](http://www.eclipse.org/subversive/) so please intall it before use this Plugin
+
+Clone this repo and :
+Import [BSAnalyzer](BSAnalyzer) as file system
+Import [TestSmellPlugin](TestSmellPlugin) as file system
+
+If everything works fine, no classpath issues, you are ready to Run 
+
